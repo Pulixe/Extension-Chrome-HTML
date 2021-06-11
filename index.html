@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+    function getHour(date) {
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? '0'+minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+        return strTime;
+    }
+    function create_message(message, sent){
+        var newDiv = document.createElement('div');
+        var newDiv_empty = document.createElement('div');
+        var newImg = document.createElement('img');
+        var newSpan_msg = document.createElement('span');
+        var newSpan_time = document.createElement('span');
+        var holder;
+
+        if(sent == "user"){
+            newDiv.setAttribute("id", "chat_user");
+            newDiv.setAttribute("style","max-width: 500px");
+            newDiv_empty.setAttribute("id","chat_user_text")
+            newSpan_msg.setAttribute("style","font-size: 14px; color: rgb(230, 230, 230); padding-top: 20px; padding-right: 10px")
+            newSpan_msg.innerText = message.value;
+            newSpan_time.setAttribute("style", "font-size: 10px;position: absolute;bottom: 0;right: 0;margin-right: 10px; margin-bottom: 5px; color: rgb(235,235,235)");
+            newSpan_time.innerText = getHour(new Date);
+        }else{
+            newImg.setAttribute("src","imgs/va_female.png")
+            newImg.setAttribute("style","width: 40px; height: 40px; border-radius: 50%;")
+            newDiv.setAttribute("id", "chat_chatbox");
+            newDiv.setAttribute("style","max-width: 400px");
+            newDiv_empty.setAttribute("id","chat_chatbot_text")
+            newSpan_msg.setAttribute("style","font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px; padding-left: 10px")
+            newSpan_msg.innerText = message.value;
+            newSpan_time.setAttribute("style", "font-size: 10px;position: absolute;bottom: 0;right: 0;margin-right: 10px; margin-bottom: 5px;color: rgb(116, 114, 114);");
+            newSpan_time.innerText = getHour(new Date);
+        }
+        
+
+        holder=document.getElementById("chat_holder");
+        holder.appendChild(newDiv);
+        newDiv.appendChild(newDiv_empty);
+        newDiv_empty.appendChild(newSpan_msg);
+        newDiv_empty.appendChild(newSpan_time);
+    }
+
+    function send_message(e){
+        var sent_by = "user";
+        var message = document.getElementById("message_body");
+        if(message.value.trim()== ""){
+            petition();
+        }else{
+            create_message(message, sent_by);
+            autoscroll();
+        }
+    }
+
+
+    function autoscroll() {
+        var elem = document.getElementById('chat_holder');
+        elem.scrollTop = elem.scrollHeight;
+    }
+
+    function petition(){
+        const url = "http://72.32.47.221:8080/api/v1/bert";
+        //variables que se recolectaran de la extension y el chatbot
+        var site_url = "https://www.gmcapital.com.mx/densificacion-urbana";
+        var user_question = "que hace la densificacion urbana?";
+
+        //creacion del JSON que se enviara a la API
+        var object = {
+            "apikey":"000000abc1234ABC"
+        }
+        //agregamos la url y la pregunta al json
+        object.url = site_url;
+        object.question = user_question;
+        result;
+
+        //data lista para enviar al servidor
+        let data = JSON.stringify(object);
+        //parametros de la estructura de la API
+        const otherpram = {
+            headers : {
+                "content-type":"application/json; charset=UTF-8"
+            },
+            body: data,
+            method:"POST"
+        };
+
+        fetch(url,otherpram).then(r => r.text()).then(result => {
+            //aqui llega el resultado desde el servidor web en la variable result
+            const obj = JSON.parse(result);
+        console.log(obj.Prediction)
+        })
+        sent_by = "chatbot"
+        create_message(result, sent_by);
+    }
+    
+    var input = document.getElementById("message_body");
+    input.addEventListener("keyup", function(event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            document.getElementById("sender").click();
+        }
+    });
+</script>
+</head>
+
+<style type = "text/css">
+
+    @font-face{
+        font-family: myFont;
+        src: url(fonts/OpenSans-Regular.ttf);
+    }
+
+    @font-face{
+        font-family: textFont;
+        src: url(fonts/Roboto-Medium.ttf);
+    }
+
+    @font-face{
+        font-family: text_2Font;
+        src: url(fonts/Roboto-Medium.ttf);
+    }
+
+
+    #wrapper{
+        max-width: 550px;
+        min-height: 500px;
+        display: flex;
+        font-family: myFont; 
+        border-radius: 15px 15px 0px 0px;}
+
+    #left_pannel{
+        min-height: 500px;
+        background-color: #383E48;
+        flex: 1;
+        text-align: center;
+        border-radius: 15px 15px 0px 0px;
+    }
+
+    #left_pannel img{
+        width: 50%;
+        height: 15%;
+        background-image: url("imgs/man.png");
+        border: white;
+        background-color: whitesmoke;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-radius: 60%;
+        margin-top: 20px;
+    }
+
+    #right_pannel{
+        min-height: 500px;
+        background-color: #dfe7e9;
+        flex: 4;
+        border-radius: 15px 15px 0px 0px;
+    }
+
+    #header{
+        background-color:  #2f9ce0;
+        height: 75px;
+        border-radius: 15px 15px 0px 0px;
+    }
+
+    #header img{
+        width: 47px;
+        height: 47px;
+        float: left;
+        margin: 11px;
+        background-color: whitesmoke;
+        border-radius: 50%;
+        border: solid 3px white;
+        z-index: 998;
+    }
+
+    #header div{
+        width: 14px;
+        height: 14px;
+        margin-top: 47px;
+        margin-left: 47px;
+        background-color: rgb(34, 218, 178);
+        border-radius: 50%;
+        border: solid 2px whitesmoke;
+        position: fixed;
+        z-index: 999;
+    }
+
+    #header span{
+        padding-top: 120px;
+    }
+    
+    #chat_chatbox{
+        height: 70px;
+        margin: 10px;
+        padding: 2px;
+        padding-right: 10px;
+        position: relative;
+        width:85%;
+    }
+
+    #chat_chatbox img{
+        margin-top: 5px;
+        padding: 2px;
+        padding-right: 10px;
+        position: absolute;
+        float: left;
+        width:85%;
+    }
+
+    #chat_chatbot_text{
+        min-height: 50px;
+        margin-left: 60px;
+        margin-top: 10px;
+        padding: 5px;
+        padding-right: 10px;
+        background-color: #EEEEEE;
+        color: #444444;
+        float: right;
+        box-shadow: 0px 0px 10px #AAAAAA;
+        border-radius: 0px 10px 10px 10px;
+        position: absolute;
+        width:80%;
+        font-family: textFont;
+        overflow-wrap: break-word;
+    }
+
+    #chat_user{
+        height: 70px;
+        margin: 10px;
+        padding: 2px;
+        padding-right: 10px;
+        position: relative;
+        width:100%;
+        text-align: right;
+    }
+
+    #chat_user_text{
+        min-height: 50px;
+        right: 1px;
+        margin-top: 10px;
+        margin-right: 5px;
+        padding: 5px;
+        padding-right: 7px;
+        padding-bottom: 3px;
+        background-color: #1e94dd;
+        border-radius: 10px 0px 10px 10px;
+        color: #f8f6f6;
+        position: absolute;
+        float: right;
+        width: min(350px, 60%);
+        font-family: textFont;
+        overflow-wrap: break-word;
+        overflow-y: auto;
+    }
+
+    #sender{
+        position: relative;
+        background-color: #04AA6D;
+        border: none;
+        content: "Enviar";
+        font-size: 14px;
+        color: #FFFFFF;
+        padding: 20px;
+        width: 80px;
+        height: fit-content;
+        text-align: center;
+        -webkit-transition-duration: 0.4s; /* Safari */
+        transition-duration: 0.4s;
+        text-decoration: none;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    #sender:after {
+        content: "Enviado";
+        text-align: center;
+        background: #90EE90;
+        display: block;
+        position: absolute;
+        padding-top: 300%;
+        padding-left: 350%;
+        margin-left: -20px!important;
+        margin-top: -120%;
+        opacity: 0;
+        transition: all 0.8s
+    }
+
+    #sender:active:after {
+        padding: 0;
+        margin: 0;
+        opacity: 1;
+        transition: 0s
+    }
+</style>
+<body>
+    <div id="overlay_box">
+        <div id="wrapper">
+            <div id="right_pannel">
+                <div id= "header">
+                    <img src= "imgs/va_female.png">
+                    <div></div>
+                    <span style="font-size: 23px; color: rgb(243, 241, 241); margin-top: 40px; font-weight: bold;"> Asistente Virtual AllMagy</span>
+                </div>
+                <div id="container">
+                    <div id = "chat_holder_parent" style = " height: 440px; ">
+                        <div id = "chat_holder" style = "border: solid 2px #818181;overflow-y: auto; height: 410px; ">
+                        
+                            <div id="chat_chatbox" style="max-width: 450px;">
+                                <img src= "imgs/va_female.png" style="width: 40px; height: 40px; border-radius: 50%;"> 
+                                <div id= "chat_chatbot_text" style="max-width: 290px;" >
+                                    <span style= "font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px; padding-left: 10px;">Hola, soy tu asistente virtual escolar</span>
+                                    <span id= "time" style= "font-size: 10px; color: rgb(116, 114, 114)"></span>
+                                    <script>
+                                        document.getElementById("time").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div id="chat_chatbox" style="max-width: 450px;">
+                                <img src= "imgs/va_female.png" style="width: 40px; height: 40px; border-radius: 50%;"> 
+                                <div id= "chat_chatbot_text" style="max-width: 290px;" >
+                                    <span style= "font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px; padding-left: 10px;">Introduce una pregunta que tengas sobre el tema que investigas.</span>
+                                    <span id= "time1" style= "font-size: 10px; color: rgb(116, 114, 114)"></span>
+                                    <script>
+                                        document.getElementById("time1").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div id= "chat_user" style="max-width: 500px;">
+                                <div id="chat_user_text" >
+                                    <span style= "font-size: 14px; color: rgb(230, 230, 230); padding-top: 20px; padding-right: 10px;">¿Qué objetivo tiene la densificacion?</span>
+                                    <span id= "time2" style= "font-size: 10px; color: rgb(255, 255, 255)"></span>
+                                    <script>
+                                        document.getElementById("time2").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div id="chat_chatbox" style="max-width: 350px;">
+                                <img src= "imgs/va_female.png" style="width: 40px; height: 40px; border-radius: 50%;"> 
+                                <div id= "chat_chatbot_text" style="max-width: 290px;" >
+                                    <span style= "font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px; padding-left: 10px;">Utilizar y aprovechar el suelo</span>
+                                    <span id= "time3" style= "font-size: 10px; color: rgb(116, 114, 114)"></span>
+                                    <script>
+                                        document.getElementById("time3").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                                <div></div>
+                            </div>
+                            <div id= "chat_user" style="max-width: 500px;">
+                                <div id="chat_user_text" >
+                                    <span style= "font-size: 14px; color: rgb(230, 230, 230); padding-top: 20px; padding-right: 10px;">¿Quién promueve la densificacion?</span>
+                                    <span id= "time4" style= "font-size: 10px; color: rgb(255, 255, 255)"></span>
+                                    <script>
+                                        document.getElementById("time4").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div id="chat_chatbox" style="max-width: 350px;">
+                                <img src= "imgs/va_female.png" style="width: 40px; height: 40px; border-radius: 50%;"> 
+                                <div id= "chat_chatbot_text" style="max-width: 290px;" >
+                                    <span style= "font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px; padding-left: 10px;">El gobierno de distintos países, y varios organismos internacionales</span>
+                                    <span id= "time5" style= "font-size: 10px; color: rgb(116, 114, 114)"></span>
+                                    <script>
+                                        document.getElementById("time5").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                                <div></div>
+                            </div>
+
+                            <div id= "chat_user" style="max-width: 500px;">
+                                <div id="chat_user_text" >
+                                    <span style= "font-size: 14px; color: rgb(230, 230, 230); padding-top: 20px; padding-right: 10px;">¿Cómo beneficia la densificación?</span>
+                                    <span id= "time6" style= "font-size: 10px; color: rgb(255, 255, 255)"></span>
+                                    <script>
+                                        document.getElementById("time6").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div id="chat_chatbox" style="max-width: 350px;">
+                                <img src= "imgs/va_female.png" style="width: 40px; height: 40px; border-radius: 50%;"> 
+                                <div id= "chat_chatbot_text" style="max-width: 290px;" >
+                                    <span style= "font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px; padding-left: 10px;">Ayuda a construir ciudades compactas, sustentables, productivas y funcionales</span>
+                                    <span id= "time7" style= "font-size: 10px; color: rgb(116, 114, 114)"></span>
+                                    <script>
+                                        document.getElementById("time7").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                                <div></div>
+                            </div>
+                        </div>
+                        <div style= "display: flex;width: 100%;height: 40px;">
+                            <input id="message_body" style="flex: 6; border:none; font-size: 14px;" type="text" placeholder="Escribe tu mensaje..." />
+                            <button id="sender" style="cursor: pointer;" type="button" onclick= 'send_message(event)' value="Enviar"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
