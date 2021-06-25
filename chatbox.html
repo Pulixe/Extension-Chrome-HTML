@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+    function getHour(date) {
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? '0'+minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+        return strTime;
+    }
+    function create_message(text_body, sent){
+        var newDiv = document.createElement('div');
+        var newDiv_empty = document.createElement('div');
+        var newImg = document.createElement('img');
+        var newSpan_msg = document.createElement('span');
+        var newSpan_time = document.createElement('span');
+        var holder;
+
+        if(sent == "user"){
+            newDiv.setAttribute("id", "chat_user");
+            newDiv.setAttribute("style","max-width: 500px");
+            newDiv_empty.setAttribute("id","chat_user_text");
+            newSpan_msg.setAttribute("style","font-size: 14px; color: rgb(254, 254, 254); padding-top: 20px; padding-right: 10px");
+            newSpan_msg.innerText = text_body.value;
+            newSpan_time.setAttribute("style", "font-size: 10px;position: absolute;bottom: 0;right: 0;margin-right: 10px; margin-bottom: 5px; padding-top: 3px; color: rgb(235,235,235)");
+            newSpan_time.innerText = getHour(new Date);
+
+
+            holder=document.getElementById("chat_holder");
+            holder.appendChild(newDiv);
+            newDiv.appendChild(newDiv_empty);
+            newDiv_empty.appendChild(newSpan_msg);
+            newDiv_empty.appendChild(newSpan_time);
+        }else{
+            newImg.setAttribute("src","imgs/va_female.png");
+            newImg.setAttribute("style","width: 40px; height: 40px; border-radius: 50%;");
+            newDiv.setAttribute("id", "chat_chatbox");
+            newDiv.setAttribute("style","max-width: 400px");
+            newDiv_empty.setAttribute("id","chat_chatbot_text");
+            newSpan_msg.setAttribute("style","font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px");
+            newSpan_msg.innerText = text_body;
+            newSpan_time.setAttribute("style", "font-size: 10px;position: absolute;bottom: 0;right: 0;margin-right: 10px; margin-bottom: 5px;padding-top: 3px;color: rgb(116, 114, 114);");
+            newSpan_time.innerText = getHour(new Date);
+
+            holder=document.getElementById("chat_holder");
+            holder.appendChild(newDiv);
+            newDiv.appendChild(newImg);
+            newDiv.appendChild(newDiv_empty);
+            newDiv_empty.appendChild(newSpan_msg);
+            newDiv_empty.appendChild(newSpan_time);
+
+            autoscroll();
+        }
+    }
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function send_message(e){
+        var sent_by = "user";
+        var message = document.getElementById("message_body");
+        if(message.value.trim()== ""){
+            
+        }else{
+            create_message(message, sent_by);
+            autoscroll();
+            sleep(600);
+            petition(message);
+            document.getElementById("message_body").value = "";
+        }
+    }
+
+    function autoscroll() {
+        var elem = document.getElementById('chat_holder');
+        elem.scrollTop = elem.scrollHeight;
+    }
+
+    function petition(usr_question){
+        const url = "https://72.32.47.221/api/v1/bert";
+        //variables que se recolectaran de la extension y el chatbot
+        var site_url = window.location.href;
+        var user_question = usr_question.value;
+        var responses = "";
+
+        //creacion del JSON que se enviara a la API
+        var object = {
+            "apikey":"000000abc1234ABC"
+        }
+
+        //agregamos la url y la pregunta al json
+        object.url = site_url;
+        object.question = user_question;
+        var result = 0;
+
+        //data lista para enviar al servidor
+        let data = JSON.stringify(object);
+        //parametros de la estructura de la API
+        const otherpram = {
+            headers : {
+                "content-type":"application/json; charset=UTF-8"
+            },
+            body: data,
+            method:"POST"
+        };
+
+        fetch(url,otherpram).then(r => r.text()).then(result => {
+            //aqui llega el resultado desde el servidor web en la variable result
+            const obj = JSON.parse(result);
+            responses = obj.Prediction;
+            console.log(responses)
+            sent_by = "chatbot"
+            create_message(responses, sent_by);
+        })
+    }
+</script>
+</head>
+
+<style type = "text/css">
+
+    @font-face{
+        font-family: myFont;
+        src: url(fonts/NotoSans-Regular.ttf);
+    }
+
+    @font-face{
+        font-family: textFont;
+        src: url(fonts/Roboto-Medium.ttf);
+    }
+
+    @font-face{
+        font-family: input_text;
+        src: url(fonts/Montserrat-SemiBold.ttf);
+    }
+
+    @font-face{
+        font-family: chatbot_text;
+        src: url(fonts/Inter-Medium.ttf);
+    }
+
+    @font-face{
+        font-family: user_text;
+        src: url(fonts/Inter-Medium.ttf);
+    }
+
+    #wrapper{
+        max-width: 450px;
+        min-height: 500px;
+        display: flex;
+        font-family: myFont; 
+        border-radius: 15px 15px 0px 0px;}
+
+    #left_pannel{
+        min-height: 500px;
+        background-color: #383E48;
+        flex: 1;
+        text-align: center;
+        border-radius: 15px 15px 0px 0px;
+    }
+
+    #left_pannel img{
+        width: 50%;
+        height: 15%;
+        background-image: url("imgs/man.png");
+        border: white;
+        background-color: whitesmoke;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-radius: 60%;
+        margin-top: 20px;
+    }
+
+    #right_pannel{
+        min-height: 500px;
+        min-width: 450px;
+        background-color: #ffffff;
+        flex: 4;
+        border-radius: 15px 15px 0px 0px;
+    }
+
+    #header{
+        background-color:  #09AACA;
+        height: 75px;
+        border-radius: 15px 15px 0px 0px;
+    }
+
+    #header img{
+        width: 47px;
+        height: 47px;
+        float: left;
+        margin: 11px;
+        background-color: whitesmoke;
+        border-radius: 50%;
+        border: solid 3px white;
+        z-index: 998;
+    }
+
+    #header div{
+        width: 14px;
+        height: 14px;
+        margin-top: 47px;
+        margin-left: 47px;
+        background-color: rgb(34, 218, 178);
+        border-radius: 50%;
+        border: solid 2px whitesmoke;
+        position: fixed;
+        z-index: 999;
+    }
+
+    #header span{
+        position: relative;
+        top: 22px;
+        left: 5px;
+        font-family: myFont;
+    }
+    
+    #chat_chatbox{
+        height: 70px;
+        margin: 10px;
+        padding: 2px;
+        padding-right: 10px;
+        position: relative;
+        width:85%;
+    }
+
+    #chat_chatbox img{
+        margin-top: 5px;
+        padding: 2px;
+        position: absolute;
+        float: left;
+        width:85%;
+        border: solid 1px rgb(236, 236, 236);
+    }
+
+    #chat_chatbot_text{
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        min-height: 50px;
+        margin-left: 60px;
+        margin-top: 10px;
+        padding: 5px;
+        padding-right: 5px;
+        padding-left: 10px;
+        background-color: #ecf1f1;
+        color: #444444;
+        float: right;
+        border-radius: 0px 10px 10px 10px;
+        position: absolute;
+        width:80%;
+        font-family: chatbot_text;
+        overflow-wrap: break-word;
+        
+    }
+
+    #chat_user{
+        height: 70px;
+        margin: 10px;
+        padding: 2px;
+        padding-right: 10px;
+        position: relative;
+        width:94%;
+        text-align: right;
+    }
+
+    #chat_user_text{
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        min-height: 50px;
+        right: 1px;
+        margin-top: 10px;
+        margin-right: 5px;
+        padding: 5px;
+        
+        padding-right: 8px;
+        padding-bottom: 3px;
+        background-color: #09AACA;
+        border-radius: 10px 0px 10px 10px;
+        color: #ffffff;
+        position: absolute;
+        float: right;
+        width: min(350px, 60%);
+        font-family: user_text;
+        overflow-wrap: break-word;
+        overflow-y: auto;
+    }
+    
+    #sender{
+        background:#1AAB8A;
+        color:#fff;
+        border:none;
+        position:relative;
+        height:40px;
+        width: 100px;
+        font-size:0.9em;
+        padding:0 2em;
+        cursor:pointer;
+        transition:300ms ease all;
+        outline:none;
+        text-align: justify;
+        font-family: input_text;
+    }
+    #sender:hover{
+        background:#fff;
+        color:#1AAB8A;
+    }
+    #sender:after{
+        right:inherit;
+        top:inherit;
+        left:0;
+        bottom:0;
+    }
+    #sender:hover:before,#sender:hover:after{
+        width:100%;
+        transition:300ms ease all;
+    }
+
+    #message_body{
+        text-align: 2px;
+        margin-right: 1px;
+        font-family: user_text;
+    }
+    
+</style>
+<body>
+    <div id="overlay_box">
+        <div id="wrapper">
+            <div id="right_pannel">
+                <div id= "header">
+                    <img src= "imgs/va_female.png">
+                    <div></div>
+                    <span style="font-size: 22px; color: rgb(252, 251, 251); font-weight: bold;"> Asistente Virtual AllMagy</span>
+                </div>
+                <div id="container">
+                    <div id = "chat_holder_parent" style = " height: 440px; ">
+                        <div id = "chat_holder" style = "border: solid 1px #b8b8b8;overflow-y: auto; height: 410px; ">
+                        
+                            <div id="chat_chatbox" style="max-width: 450px;">
+                                <img src= "imgs/va_female.png" style="width: 40px; height: 40px; border-radius: 50%;"> 
+                                <div id= "chat_chatbot_text" style="max-width: 290px;" >
+                                    <span style= "font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px;">Hola, soy tu asistente virtual escolar</span>
+                                    <span id= "time" style= "font-size: 10px;position: absolute;bottom: 0;right: 0;margin-right: 10px; margin-bottom: 5px; color: rgb(116, 114, 114)"></span>
+                                    <script>
+                                        document.getElementById("time").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div id="chat_chatbox" style="max-width: 450px;">
+                                <img src= "imgs/va_female.png" style="width: 40px; height: 40px; border-radius: 50%;"> 
+                                <div id= "chat_chatbot_text" style="max-width: 290px;" >
+                                    <span style= "font-size: 14px; color: rgb(54, 52, 52);padding-top: 20px;">Introduce una pregunta que tengas sobre el tema que investigas</span>
+                                    <span id= "time1" style= "font-size: 10px;position: absolute;bottom: 0;right: 0;margin-right: 10px; margin-bottom: 5px; color: rgb(116, 114, 114)"></span>
+                                    <script>
+                                        document.getElementById("time1").innerText = getHour(new Date);
+                                    </script>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div style= "display: flex;width: 100%;height: 40px;">
+                            <input id="message_body" style="flex: 6; border:none; font-size: 14px;" type="text" placeholder="Escribe tu pregunta..." onkeydown="if (event.keyCode == 13) { send_message(event); return false; }"/>
+                            <button id="sender" style="cursor: pointer;" type="button" onclick= 'send_message(event)'>Enviar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
